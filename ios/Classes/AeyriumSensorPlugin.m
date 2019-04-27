@@ -23,10 +23,11 @@ void _initMotionManager() {
   }
 }
 
-static void sendData(Float64 pitch, Float64 roll, FlutterEventSink sink) {
-  NSMutableData* event = [NSMutableData dataWithCapacity:2 * sizeof(Float64)];
+static void sendData(Float64 pitch, Float64 roll, Float64 azimuth, FlutterEventSink sink) {
+  NSMutableData* event = [NSMutableData dataWithCapacity:3 * sizeof(Float64)];
   [event appendBytes:&pitch length:sizeof(Float64)];
   [event appendBytes:&roll length:sizeof(Float64)];
+  [event appendBytes:&azimuth length:sizeof(Float64)];
   sink([FlutterStandardTypedData typedDataWithFloat64:event]);
 }
 
@@ -46,21 +47,33 @@ double degrees(double radians) {
      CMQuaternion quat = attitude.quaternion;
    
      CMDeviceMotion *deviceMotion = data;
+
+     double pitch = attitude.pitch, roll = attitude.roll, azimuth = attitude.yaw;
      
      // Correct for the rotation matrix not including the screen orientation:
      UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
      float deviceOrientationRadians = 0.0f;
-     if (orientation == UIDeviceOrientationLandscapeLeft) {
+     if (orientation == UIDeviceOrientationPortrait) {
+       deviceOrientationRadians = 0;
+     }
+     else if (orientation == UIDeviceOrientationLandscapeLeft) {
        deviceOrientationRadians = M_PI_2;
      }
-     if (orientation == UIDeviceOrientationLandscapeRight) {
+     else if (orientation == UIDeviceOrientationLandscapeRight) {
        deviceOrientationRadians = -M_PI_2;
      }
-     if (orientation == UIDeviceOrientationPortraitUpsideDown) {
+     else if (orientation == UIDeviceOrientationPortraitUpsideDown) {
        deviceOrientationRadians = M_PI;
      }
-     GLKMatrix4 baseRotation = GLKMatrix4MakeRotation(deviceOrientationRadians, 0.0f, 1.0f, 1.0f);
-     
+     else if (orientation == UIDeviceOrientationFaceDown) {
+       deviceOrientationRadians = 0;
+     }
+     else if (orientation == UIDeviceOrientationFaceUp) {
+       deviceOrientationRadians = 0;
+     }
+
+     GLKMatrix4 baseRotation = GLKMatrix4MakeRotation(deviceOrientationRadians, 0.0f, 0.0f, 1.0f);
+
      GLKMatrix4 deviceMotionAttitudeMatrix;
      CMRotationMatrix a = deviceMotion.attitude.rotationMatrix;
      deviceMotionAttitudeMatrix
@@ -68,13 +81,13 @@ double degrees(double radians) {
                       a.m12, a.m22, a.m32, 0.0f,
                       a.m13, a.m23, a.m33, 0.0f,
                       0.0f, 0.0f, 0.0f, 1.0f);
-     
+
      deviceMotionAttitudeMatrix = GLKMatrix4Multiply(baseRotation, deviceMotionAttitudeMatrix);
-     double pitch = (asin(-deviceMotionAttitudeMatrix.m22));
-     double roll = -(atan2(2*(quat.y*quat.w - quat.x*quat.z), 1 - 2*quat.y*quat.y - 2*quat.z*quat.z)) ;
+     pitch = (asin(-deviceMotionAttitudeMatrix.m22));
+     double roll1 = -(atan2(2*(quat.y*quat.w - quat.x*quat.z), 1 - 2*quat.y*quat.y - 2*quat.z*quat.z)) ;
      double roll2 = -(atan2(-a.m13, a.m33)); //roll based on android code from matrix
-     double rollGravity =  atan2(data.gravity.x, data.gravity.y) - M_PI; //roll based on just gravity
-     sendData(degrees(pitch), degrees(rollGravity), eventSink);
+     roll =  atan2(data.gravity.x, data.gravity.y) - M_PI; //roll based on just gravity
+     sendData(degrees(pitch), degrees(roll), degrees(deviceOrientationRadians), eventSink);
    }];
   return nil;
 }

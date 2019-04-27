@@ -14,10 +14,14 @@ class SensorEvent {
   ///A roll is a rotation around a longitudinal (Y) axis that passes through the device from its top to bottom
   final double roll;
 
-  SensorEvent(this.pitch, this.roll);
+  ///Azimuth value from the device in radians
+  final double azimuth;
+//  final double inclination;
+
+  SensorEvent(this.pitch, this.roll, this.azimuth);
 
   @override
-  String toString() => '[Event: (pitch: $pitch, roll: $roll)]';
+  String toString() => '[Event: (pitch: $pitch, roll: $roll, azimuth: $azimuth)]';
 }
 
 class AeyriumSensor {
@@ -36,6 +40,6 @@ class AeyriumSensor {
   }
 
   static SensorEvent _listToSensorEvent(List<double> list) {
-    return SensorEvent(list[0], list[1]);
+    return SensorEvent(list[0], list[1], list[2]);
   }
 }
