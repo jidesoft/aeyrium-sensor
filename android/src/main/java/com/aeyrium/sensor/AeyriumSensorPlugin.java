@@ -75,12 +75,12 @@ public class AeyriumSensorPlugin implements EventChannel.StreamHandler {
                     return;
                 }
 
-                updateOrientation(event.values, events);
+                updateOrientation(event.values, events, mLastAccuracy);
             }
         };
     }
 
-    private void updateOrientation(float[] rotationVector, EventChannel.EventSink events) {
+    private void updateOrientation(float[] rotationVector, EventChannel.EventSink events, int accuracy) {
         float[] rotationMatrix = new float[9];
         SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector);
 
@@ -131,10 +131,11 @@ public class AeyriumSensorPlugin implements EventChannel.StreamHandler {
 
         double pitch = -orientation[1];
         double roll = -orientation[2];
-        double[] sensorValues = new double[3];
+        double[] sensorValues = new double[4];
         sensorValues[0] = Math.toDegrees(pitch);
         sensorValues[1] = Math.toDegrees(roll);
         sensorValues[2] = Math.toDegrees(azimuth);
+        sensorValues[3] = accuracy;
 //        sensorValues[3] = Math.toDegrees(incl);
         events.success(sensorValues);
     }

@@ -18,7 +18,9 @@ class SensorEvent {
   final double azimuth;
 //  final double inclination;
 
-  SensorEvent(this.pitch, this.roll, this.azimuth);
+  final int accuracy;
+
+  SensorEvent(this.pitch, this.roll, this.azimuth, this.accuracy);
 
   @override
   String toString() => '[Event: (pitch: $pitch, roll: $roll, azimuth: $azimuth)]';
@@ -40,6 +42,6 @@ class AeyriumSensor {
   }
 
   static SensorEvent _listToSensorEvent(List<double> list) {
-    return SensorEvent(list[0], list[1], list[2]);
+    return SensorEvent(list[0], list[1], list[2], list[3].toInt());
   }
 }
