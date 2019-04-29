@@ -88,7 +88,7 @@ double degrees(double radians) {
      double roll1 = -(atan2(2*(quat.y*quat.w - quat.x*quat.z), 1 - 2*quat.y*quat.y - 2*quat.z*quat.z)) ;
      double roll2 = -(atan2(-a.m13, a.m33)); //roll based on android code from matrix
      roll =  atan2(data.gravity.x, data.gravity.y) - M_PI; //roll based on just gravity
-     sendData(degrees(pitch), degrees(roll), degrees(data.heading), 0.0, eventSink);
+     sendData(degrees(pitch), degrees(roll), degrees(deviceOrientationRadians), 0.0, eventSink);
    }];
   return nil;
 }
